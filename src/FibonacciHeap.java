@@ -1,3 +1,4 @@
+import java.util.LinkedList;
 import java.util.Vector;
 /**
  * FibonacciHeap
@@ -6,15 +7,17 @@ import java.util.Vector;
  */
 public class FibonacciHeap
 {
-    private HeapNode min;
-
+    // This is used to remove min node from the vector without the need to find it.
+    private int minIndex = -1;
     private int size;
+    private int nodes_marked;
 
-    Vector<HeapNode> roots;
+
+    private LinkedList<HeapNode> roots;
 
     public FibonacciHeap()
     {
-        this.roots = new Vector<HeapNode>();
+        this.roots = new LinkedList<HeapNode>();
     }
 
    /**
@@ -29,21 +32,26 @@ public class FibonacciHeap
     */
     public boolean isEmpty()
     {
-    	return (this.min == null && 0 == this.size);
+    	return (this.findMin() == null && 0 == this.size);
     }
 		
    /**
     * public HeapNode insert(int key)
     *
     * Creates a node (of type HeapNode) which contains the given key, and inserts it into the heap.
-    * 
+    * The new new node is inserted as a binomial tree of rank 0, to the root's list.
+    * Complexity: since we used the lazy insertion method, as seen in class insert runs at O(1)
     * Returns the new node created. 
     */
     public HeapNode insert(int key)
     {
         HeapNode node = new HeapNode(key);
         this.roots.add(node);
-    	return new HeapNode(key); // should be replaced by student code
+        if (isEmpty() || node.key < this.findMin().getKey()){
+            this.minIndex = this.getRootsLinkedList().size();
+        }
+        this.size++;
+    	return node;
     }
 
    /**
@@ -51,9 +59,24 @@ public class FibonacciHeap
     *
     * Delete the node containing the minimum key.
     *
+    * Complexity: O(log n) The runtime complexity is determined by the complexity of
+    * the consolidation process which takes place in a helper function.
+    * The consolidation runs at an amortized time of O(log n) hence this runs at O(log n)
     */
     public void deleteMin()
     {
+        HeapNode node = this.findMin();
+        if (null != node){
+            this.roots.addAll(node.children);
+        }
+
+        // remove min from roots
+        this.roots.remove(this.getMinIndex());
+
+        if (this.roots.size() == 0) {
+            this.minIndex = -1;
+        }
+
      	return; // should be replaced by student code
      	
     }
@@ -67,7 +90,10 @@ public class FibonacciHeap
     */
     public HeapNode findMin()
     {
-    	return this.min;
+        if (this.getMinIndex() == -1)
+            return null;
+
+        return this.roots.get(this.minIndex);
     } 
     
    /**
@@ -78,8 +104,24 @@ public class FibonacciHeap
     */
     public void meld (FibonacciHeap heap2)
     {
-    	  return; // should be replaced by student code   		
+        // If the second heap is empty, we don't need to change our own heap
+        if (heap2.isEmpty())
+            return;
+
+        // Add all roots of heap2 to this roots vector
+        this.roots.addAll(heap2.getRootsLinkedList());
+
+        //if current heap is empty
+        if (this.isEmpty() || heap2.findMin().getKey() < this.findMin().getKey()){
+            this.minIndex = heap2.getMinIndex();
+        }
+        else {
+            this.consolidate();
+        }
+
+        this.size += heap2.size();
     }
+
 
    /**
     * public int size()
@@ -89,19 +131,25 @@ public class FibonacciHeap
     */
     public int size()
     {
-    	return 0; // should be replaced by student code
+    	return this.size; // should be replaced by student code
     }
     	
     /**
     * public int[] countersRep()
     *
     * Return a counters array, where the value of the i-th entry is the number of trees of order i in the heap. 
-    * 
+    *  It was clarified in the forum that the tree's order is the root's rank.
     */
     public int[] countersRep()
     {
-	int[] arr = new int[42];
-        return arr; //	 to be replaced by student code
+
+    int[] rootsRankArr = new int[roots.size()];
+    for (HeapNode root : this.roots){
+        if (root != null)
+            rootsRankArr[root.rank]++;
+    }
+
+    return rootsRankArr; //	 to be replaced by student code
     }
 	
    /**
@@ -174,7 +222,22 @@ public class FibonacciHeap
         int[] arr = new int[42];
         return arr; // should be replaced by student code
     }
-    
+
+    // A getter to the heap's min element
+
+    // A getter to the heap's number of marked nodes
+    public int getNodesMarked() {
+        return this.nodes_marked;
+    }
+
+    public int getMinIndex()
+    {
+        return this.minIndex;
+    }
+    public LinkedList<HeapNode> getRootsLinkedList()
+    {
+        return this.roots;
+    }
    /**
     * public class HeapNode
     * 
@@ -185,15 +248,20 @@ public class FibonacciHeap
     */
     public class HeapNode{
 
-	public int key;
+       public int key;
+       public int rank;
+       private LinkedList<HeapNode> children;
+       public HeapNode(int key) {
+           this.children = new LinkedList<HeapNode>();
+           this.key = key;
+       }
 
-  	public HeapNode(int key) {
-	    this.key = key;
-      }
+       public int getKey() {
+           return this.key;
+       }
 
-  	public int getKey() {
-	    return this.key;
-      }
-
-    }
+       public LinkedList<HeapNode> getChildren() {
+           return children;
+       }
+   }
 }
