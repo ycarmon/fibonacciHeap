@@ -53,4 +53,33 @@ class FibonacciHeapTest {
         assertEquals(2, fibHeap.size());
         assertEquals(fibHeap2.findMin(), fibHeap.findMin());
     }
+
+    @Test
+    void TestDeleteMin() {
+        FibonacciHeap fibHeap = new FibonacciHeap();
+        for (int i=0; i< 10; i++)
+            fibHeap.insert(i);
+        assertEquals(10, fibHeap.size());
+        fibHeap.deleteMin();
+        assertEquals(9, fibHeap.size());
+        assertEquals(1, fibHeap.findMin().getKey());
+    }
+
+    @Test
+    void TestDeleteMinToEmpty() {
+        FibonacciHeap fibHeap = new FibonacciHeap();
+        fibHeap.insert(0);
+        assertEquals(1, fibHeap.size());
+        fibHeap.deleteMin();
+        assertEquals(0, fibHeap.size());
+        assertNull(fibHeap.findMin());
+    }
+
+    @Test
+    void TestDeleteMinEmpty() {
+        FibonacciHeap fibHeap = new FibonacciHeap();
+        fibHeap.deleteMin();
+        assertEquals(0, fibHeap.size());
+        assertNull(fibHeap.findMin());
+    }
 }

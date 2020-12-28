@@ -87,7 +87,7 @@ public class FibonacciHeap
                 this.minNode = roots.head;
                 consolidate();
             }
-            this.size++;
+            this.size--;
         }
     }
 
@@ -141,12 +141,13 @@ public class FibonacciHeap
      */
     private void consolidate(){
         HeapNode[] rankArray = new HeapNode[getRankBound(this.size())];
+        //HeapNode[] rankArray = new HeapNode[];
         int rootsArrLen = roots.getSize();
         HeapNode node = roots.head;
 
         for (int i = 0; i < rootsArrLen; i++) {
             HeapNode curr = node;
-            curr = node.next;
+            node = node.next;
 
             if (curr != null)
             {
@@ -177,7 +178,7 @@ public class FibonacciHeap
         for (HeapNode root : rankArray) {
             if (null != root) {
                 roots.insert(root);
-                if (this.isEmpty() || root.key < this.findMin().getKey()) {
+                if (this.findMin() == null || root.key < this.findMin().getKey()) {
                     this.minNode = root;
                 }
             }
@@ -211,10 +212,18 @@ public class FibonacciHeap
     private int getRankBound(int size){
         if (this.size() != 0) {
             double constant = 1.4404;
-            return (int) Math.ceil(Math.log((double) size) * constant);
+            double bound =  log2OfSize(size) * constant;
+            int retval = (int) Math.ceil(bound);
+            return retval;
         }
 
         return 0;
+    }
+
+
+    //get the base 2 log of an integer used for bound calculation
+    private double log2OfSize(int size) {
+        return (Math.log((double) size) / Math.log(2));
     }
    /**
     * public int size()
@@ -399,7 +408,7 @@ public class FibonacciHeap
         }
 
         /**
-         * Insert an existing node at the end of the list, this will be the lists new tail
+         * Insert an existing node at the beginning of the list, this will be the lists new head
          * Complexity O(1) - only requires local changes of pointers
          * @param node The new heap node added to the list
          */
@@ -408,12 +417,14 @@ public class FibonacciHeap
                 this.head = node;
                 this.tail = node;
             } else {
-                tail.next = node;
-                node.prev = tail;
-                tail = node;
+                head.prev = node;
+                node.next = head;
+                head = node;
             }
+
             tail.next = head;
             head.prev = tail;
+
             this.size= 1 + getSize();
         }
 
@@ -513,3 +524,4 @@ public class FibonacciHeap
        }
     }
 }
+
