@@ -82,4 +82,53 @@ class FibonacciHeapTest {
         assertEquals(0, fibHeap.size());
         assertNull(fibHeap.findMin());
     }
+
+
+    @Test
+    void TestCountersRepEmpty() {
+        FibonacciHeap fibHeap = new FibonacciHeap();
+        int [] contReps = fibHeap.countersRep();
+        int [] resultArr = {0};
+        assertArrayEquals(resultArr,contReps);
+    }
+
+    @Test
+    void TestCountersRep() {
+        FibonacciHeap fibHeap = new FibonacciHeap();
+        for (int i=0; i< 10; i++)
+            fibHeap.insert(i);
+        assertEquals(10, fibHeap.size());
+        assertEquals(0, fibHeap.findMin().getKey());
+        fibHeap.deleteMin();
+        assertEquals(1, fibHeap.findMin().getKey());
+        int [] resultArr = {1,0,0,1};
+        int [] contReps = fibHeap.countersRep();
+        assertEquals(1, fibHeap.findMin().getKey());
+        assertArrayEquals(resultArr,contReps);
+    }
+
+    @Test
+    void TestKMin() {
+        FibonacciHeap fibHeap = new FibonacciHeap();
+        for (int i=0; i< 10; i++)
+            fibHeap.insert(i);
+
+        int [] arr = FibonacciHeap.kMin(fibHeap, 3);
+        int []result = {0,1,2};
+
+        assertArrayEquals(result, arr);
+    }
+
+    @Test
+    void TestKMinThousand() {
+        FibonacciHeap fibHeap = new FibonacciHeap();
+        for (int i=0; i< 1000; i++)
+            fibHeap.insert(i);
+        int k = 300;
+        int [] arr = FibonacciHeap.kMin(fibHeap, k);
+        int []result = new int[k];
+        for (int i =1; i < k; i++)
+            result[i] = i;
+        assertArrayEquals(result, arr);
+    }
 }
