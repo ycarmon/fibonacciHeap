@@ -155,12 +155,8 @@ public class FibonacciHeap
             {
                 int currNodeRank = curr.rank;
                 while (rankArray[currNodeRank] != null) {
-                    HeapNode inBucket = rankArray[currNodeRank];
-                    if (curr.key > inBucket.key) {
-                        curr = link(inBucket, curr);
-                    } else {
-                        curr = link(curr, inBucket);
-                    }
+                    HeapNode rootOfBucket = rankArray[currNodeRank];
+                    curr = linkWithRankBucketTree(curr, rootOfBucket);
 
                     // After the consolidation, this rank's bucket is empty
                     rankArray[currNodeRank] = null;
@@ -173,7 +169,32 @@ public class FibonacciHeap
                 rankArray[currNodeRank] = curr;
             }
         }
+        populateRoots(rankArray);
 
+    }
+
+    /**
+     * This is a spearate method for code clarity reasons
+     * links a two trees of the same rank.
+     * Complexity: derivesd from link function and is O(1)
+     * @param curr a tree that is the by-product of the consolidation process
+     * @param bucketTreeRoot - the tree in curr's rank bucket.
+     * @return the new linked tree of rank: (curr.rank + 1)
+     */
+    private HeapNode linkWithRankBucketTree(HeapNode curr, HeapNode bucketTreeRoot){
+        if (curr.key > bucketTreeRoot.key)
+            return link(bucketTreeRoot, curr);
+
+        return link(curr, bucketTreeRoot);
+    }
+
+    /**
+     * After the consolidation process is finished, we add the new roots in the rank Array
+     * to the roots linked list and we find the minimal node of the heap
+     * (the smallest key among the roots)
+     * Complexity O(n) where n is the number of roots in the tree
+     */
+    private void populateRoots(HeapNode [] rankArray) {
         this.minNode = null;
         this.roots = new NodeLL();
 
@@ -328,13 +349,36 @@ public class FibonacciHeap
     	return 0; // should be replaced by student code
     }
 
-     /**
-    * public static int[] kMin(FibonacciHeap H, int k)
-    *
-    * This static function returns the k minimal elements in a binomial tree H.
-    * The function should run in O(k*deg(H)). 
-    * You are not allowed to change H.
-    */
+    /**
+     * public static int[] kMin(FibonacciHeap H, int k)
+     * This static function returns the k minimal elements in a binomial tree H.
+     * The function should run in O(k*deg(H)).
+     * You are not allowed to change H.*
+     * The function starts by adding H's roots to a new Fibonacci heap. O(1) * number_of_roots
+     *Then iteratively k -times,
+     *     get the minimal element's key, O(1)
+     *     add it to the return array.
+     *     perform delete-min on the helper heap.
+     *     add all of the deleted node's children to the helper heap.
+     * Complexity: O(k * deg(H)):
+     *      Firstly the function adds all of H's roots to the helper heap
+     *      O(1) * number_of_roots. However since H is a binomial tree it
+     *      has only a single root thus number_of_roots is 1.
+     *      Thus the loop runs at O(1).
+     *
+     *      The second loop runs k times and in each iteration performs the
+     *      following sequence of actions:
+     *          a findMin call - O(1)
+     *          a deleteMin call - O(log n) - where is the number of nodes in the helper heap,
+     *              in the worst case, every node from H is in the helper heap thus this runs
+     *              at O(log 2^{deg H}) = O(deg H).
+     *          a secondary loop that adds the minimal node's roots to the helper heap
+     *              O(1) * number_of_roots. Since there are at most deg(h) roots to this runs in
+     *              O(deg H)
+     *       The total complexity of this loop is  k * ( O(1) + O(deg H) + O(deg H)) = O(k deg H)
+     *
+     *       So the total runtime complexity of this function is  O(1)+O(k deg H) = O(k deg H)
+     */
     public static int[] kMin(FibonacciHeap H, int k)
     {
         int[] arr = new int[k];
