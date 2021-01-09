@@ -11,7 +11,8 @@ public class FibonacciHeap
 {
     // A counter of the number the heap performs a heap action
     // Used to return totatlLinks()
-    private static int totatLinks = 0;
+    private static int totalLinks = 0;
+    private static int totalCuts  = 0;
     // This is used to remove min node from the vector without the need to find it.
     private HeapNode minNode;
     private int size;
@@ -82,12 +83,12 @@ public class FibonacciHeap
                 roots.join(children);
             }
             // remove min from roots
-            this.roots.remove(this.findMin());
+            this.roots.remove(node);
 
             if (0 == this.roots.getSize()){
                 this.minNode = null;
             }else {
-                this.minNode = roots.head;
+                this.minNode = roots.head;  // TODO: this doesn't seem right
                 consolidate();
             }
             this.size--;
@@ -156,16 +157,15 @@ public class FibonacciHeap
                 int currNodeRank = curr.rank;
                 while (rankArray[currNodeRank] != null) {
                     HeapNode inBucket = rankArray[currNodeRank];
-                    if (curr.key > inBucket.key) {
+
+                    if (curr.key > inBucket.key)
                         curr = link(inBucket, curr);
-                    } else {
-                        curr = link(curr, inBucket);
-                    }
+                    else curr = link(curr, inBucket);    
 
-                    // After the consolidation, this rank's bucket is empty
+                    // After a link - the previous bucket is empty
                     rankArray[currNodeRank] = null;
-                    currNodeRank++;
 
+                    currNodeRank++;
                     if (currNodeRank > this.topRank)
                         this.topRank = currNodeRank;
                 }
@@ -206,7 +206,7 @@ public class FibonacciHeap
         newRoot.rank++;
 
         // Update counter link actions performed:
-        FibonacciHeap.totatLinks++;
+        FibonacciHeap.totalLinks++;
 
         return newRoot;
     }
@@ -220,7 +220,7 @@ public class FibonacciHeap
     private int getRankBound(int size){
         if (this.size() != 0) {
             double constant = 1.4404;
-            double bound =  log2OfSize(size) * constant;
+            double bound =  constant * Math.log((double) size) / Math.log(2);
             int retval = (int) Math.ceil(bound);
             return retval;
         }
@@ -229,10 +229,6 @@ public class FibonacciHeap
     }
 
 
-    //get the base 2 log of an integer used for bound calculation
-    private double log2OfSize(int size) {
-        return (Math.log((double) size) / Math.log(2));
-    }
    /**
     * public int size()
     *
@@ -307,14 +303,13 @@ public class FibonacciHeap
     {
         // the actual cutting
         x.parent = null;
-
         x.mark = false;
         this.nodes_marked--;
-
         y.getChildren().remove(x);
-        y.rank--; // OFEK: update how the LL works so we don't have to seperately maintain rank
-
+        y.rank--;
         this.roots.insert(x);
+
+        FibonacciHeap.totalCuts++;
 
         // cascading the cut upwards
         if (y.mark) cascadingCut(y, y.parent);
@@ -347,7 +342,7 @@ public class FibonacciHeap
     */
     public static int totalLinks()
     {
-    	return FibonacciHeap.totatLinks;
+    	return FibonacciHeap.totalLinks;
     }
 
    /**
@@ -358,7 +353,7 @@ public class FibonacciHeap
     */
     public static int totalCuts()
     {
-    	return 0; // should be replaced by student code
+    	return FibonacciHeap.totalCuts; // should be replaced by student code
     }
 
      /**
@@ -578,23 +573,28 @@ public class FibonacciHeap
 
         private class NodeLLIterator implements Iterator<HeapNode> {
             // Current HeapNode object to be returned in the next call of next()
+            
             HeapNode curr;
+            boolean notInitial;
+
+            public NodeLLIterator() {
+                this.notInitial = false;
+                this.curr = head;
+            }
 
             @Override
             public boolean hasNext() {
-                if (head == null) return false;
+                if (curr == null) return false;
 
-                return !(curr.next == head);
+                return !(curr == head && notInitial);
             }
 
             @Override
             public HeapNode next() {
-                if (this.curr == null)
-                    curr = head;
-                else
-                    curr = curr.next;
-
-                return curr;
+                HeapNode ret = curr;
+                curr = curr.next;
+                notInitial = true;
+                return ret;
             }
         }
     }
