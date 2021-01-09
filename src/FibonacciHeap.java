@@ -193,7 +193,7 @@ public class FibonacciHeap
      *
      * THis method runs in O(1): Only requires a change to a constant number of nodes.
      * @param newRoot The root of the tree that will be the root of the new tree
-     * @param child Tje root of the tree that will be the child in the new tree
+     * @param child The root of the tree that will be the child in the new tree
      * @return The root of the resulting tree.
      */
 
@@ -203,7 +203,6 @@ public class FibonacciHeap
         // Set new parent-child relationship
         newRoot.getChildren().insert(child);
         child.parent = newRoot;
-
         newRoot.rank++;
 
         // Update counter link actions performed:
@@ -287,9 +286,43 @@ public class FibonacciHeap
     * The function decreases the key of the node x by delta. The structure of the heap should be updated
     * to reflect this chage (for example, the cascading cuts procedure should be applied if needed).
     */
+    // OFEK: add tests
+    // OFEK: add complexity documentation
     public void decreaseKey(HeapNode x, int delta)
     {
-    	return; // should be replaced by student code
+    	int newKey = x.getKey() - delta;
+        if (newKey > x.parent.getKey())
+        {
+            x.setKey(newKey);
+            return;
+        }
+        
+        // else
+        cascadingCut(x, x.parent);
+    }
+
+
+    // cascading cut function
+    public void cascadingCut(x, y)
+    {
+        // the actual cutting
+        x.parent = null;
+
+        x.mark = false;
+        this.nodes_marked--;
+
+        y.getChildren().remove(x);
+        y.rank--; // OFEK: update how the LL works so we don't have to seperately maintain rank
+
+        this.insert(x);
+
+        // cascading the cut upwards
+        if (y.mark) cascadingCut(y, y.parent);
+        else
+        {
+            y.mark = true;
+            this.nodes_marked++;
+        }
     }
 
    /**
@@ -301,7 +334,7 @@ public class FibonacciHeap
     */
     public int potential()
     {
-    	return 0; // should be replaced by student code
+    	return 
     }
 
    /**
@@ -374,6 +407,10 @@ public class FibonacciHeap
     {
         return this.roots;
     }
+
+
+
+
    /**
     * public class HeapNode
     * 
@@ -385,20 +422,26 @@ public class FibonacciHeap
     public class HeapNode{
 
        public int key;
-       public int rank;
+       public boolean mark;
+
+
+       // instead of a pointer to a random child - 
+       // a pointer to a linked list of the children.
+       private NodeLL children;
+
+       // This nodes right sibling in the linked list
+       private HeapNode next;
+       // This nodes left sibling in the linked list
+       private HeapNode prev;
 
        // this node's parent
        private  HeapNode parent;
-       // This nodes right sibling in the linked list
-       private HeapNode next;
-
-       // This nodes left sibling in the linked list
-       private HeapNode prev;
-       private NodeLL children;
 
        // a pointer field to another node,
        // this would inter-heap referencing
+       // OFEK: what is this?
        public HeapNode nodePointer;
+
 
        public HeapNode(int key) {
            this.children = new NodeLL();
@@ -412,6 +455,11 @@ public class FibonacciHeap
        public NodeLL getChildren() {
            return children;
        }
+
+        public void setKey(int newKey) {
+            this.key = newKey;
+        }
+
    }
 
     /**
@@ -421,8 +469,9 @@ public class FibonacciHeap
    public class NodeLL implements Iterable<HeapNode> {
         //first node in list
         private HeapNode head;
-        //last node in list
-        private HeapNode tail;
+        // TODO: delete these lines
+        // //last node in list
+        // private HeapNode tail;
         private int size;
 
 
@@ -445,6 +494,18 @@ public class FibonacciHeap
          * @param node The new heap node added to the list
          */
         private void insert(HeapNode node) {
+            HeapNode lastHead = this.head;
+            this.head = node;
+            if (this.head == null)
+            {
+                node.next = node;
+                node.prev = node;
+
+            }
+            else {
+                node.next = lastHead;
+                node.prev = lastHead.prev;
+            }
             if (null == this.head) {
                 this.head = node;
                 this.tail = node;
@@ -457,7 +518,7 @@ public class FibonacciHeap
             tail.next = head;
             head.prev = tail;
 
-            this.size= 1 + getSize();
+            this.size++;
         }
 
         /**
