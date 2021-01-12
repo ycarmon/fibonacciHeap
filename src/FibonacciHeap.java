@@ -297,28 +297,31 @@ public class FibonacciHeap
     */
     public void delete(HeapNode x)
     {
-    	return; // should be replaced by student code
+        if (null != x) {
+            int delta = (x.getKey() - this.findMin().getKey())+1;
+            decreaseKey(x, delta);
+            deleteMin();
+        }
     }
 
    /**
     * public void decreaseKey(HeapNode x, int delta)
     *
     * The function decreases the key of the node x by delta. The structure of the heap should be updated
-    * to reflect this chage (for example, the cascading cuts procedure should be applied if needed).
+    * to reflect this change (for example, the cascading cuts procedure should be applied if needed).
     */
     // OFEK: add tests
     // OFEK: add complexity documentation
     public void decreaseKey(HeapNode x, int delta)
     {
     	int newKey = x.getKey() - delta;
-        if (newKey > x.parent.getKey())
+        if (x.parent != null && newKey < x.parent.getKey())
         {
-            x.setKey(newKey);
-            return;
+            cascadingCut(x, x.parent);
         }
-
-        // else
-        cascadingCut(x, x.parent);
+        x.setKey(newKey);
+        if (this.findMin().getKey() > x.getKey())
+            this.minNode = x;
     }
 
 
@@ -327,8 +330,10 @@ public class FibonacciHeap
     {
         // the actual cutting
         x.parent = null;
-        x.mark = false;
-        this.nodes_marked--;
+        if (x.mark) {
+            x.mark = false;
+            this.nodes_marked--;
+        }
         y.getChildren().remove(x);
         y.rank--;
         this.roots.insert(x);
@@ -336,11 +341,13 @@ public class FibonacciHeap
         FibonacciHeap.totalCuts++;
 
         // cascading the cut upwards
-        if (y.mark) cascadingCut(y, y.parent);
-        else
-        {
-            y.mark = true;
-            this.nodes_marked++;
+        if (y.parent != null) {
+            if (y.mark)
+                cascadingCut(y, y.parent);
+            else {
+                y.mark = true;
+                this.nodes_marked++;
+            }
         }
     }
 
@@ -512,9 +519,6 @@ public class FibonacciHeap
     public class NodeLL implements Iterable<HeapNode> {
         //first node in list
         private HeapNode head;
-        // TODO: delete these lines
-        // //last node in list
-        // private HeapNode tail;
         private int size;
 
 
@@ -591,19 +595,25 @@ public class FibonacciHeap
          * @param removed
          */
         private void remove(HeapNode removed) {
+            if (this.getSize() != 1){
+                // If the list isn't empty we want to set the head to be the
+                // old head's next node. Otherwise we want it be null
+                if (removed == this.head) this.head = removed.next;
 
-            removed.next.prev = removed.prev;
-            removed.prev.next = removed.next;
+                HeapNode prev = removed.prev;
+                HeapNode next = removed.next;
+                prev.next = next;
+                next.prev = prev;
+            }
+            else {
+                if (removed == this.head) this.head = null;
 
-            if (this.head == removed) this.head = null;
-            else this.head = removed.next;
-
-            removed.next = null;
-            removed.prev = null;
+                removed.next = null;
+                removed.prev = null;
+            }
 
             this.size--;
         }
-
 
         /**
          * Return an iterator for the linked list
