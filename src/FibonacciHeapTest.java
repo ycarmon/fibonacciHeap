@@ -108,13 +108,29 @@ class FibonacciHeapTest {
     }
 
     @Test
+    void TestDelete() {
+        FibonacciHeap fibHeap = new FibonacciHeap();
+        FibonacciHeap.HeapNode[] heapNodes = new FibonacciHeap.HeapNode[10];
+        for (int i=0; i< 10; i++)
+            heapNodes[i] = fibHeap.insert(i);
+        assertEquals(10, fibHeap.size());
+        assertEquals(0, fibHeap.findMin().getKey());
+        fibHeap.deleteMin();
+        assertEquals(1, fibHeap.findMin().getKey());
+        assertEquals(9, fibHeap.size());
+        fibHeap.delete(heapNodes[2]);
+        assertEquals(1, fibHeap.findMin().getKey());
+        assertEquals(8, fibHeap.size());
+    }
+
+    @Test
     void TestKMin() {
         FibonacciHeap fibHeap = new FibonacciHeap();
-        for (int i=0; i< 10; i++)
+        for (int i=0; i< 1; i++)
             fibHeap.insert(i);
 
-        int [] arr = FibonacciHeap.kMin(fibHeap, 3);
-        int []result = {0,1,2};
+        int [] arr = FibonacciHeap.kMin(fibHeap, 1);
+        int []result = {0};
 
         assertArrayEquals(result, arr);
     }
