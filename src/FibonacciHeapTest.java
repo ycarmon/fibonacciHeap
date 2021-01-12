@@ -1,5 +1,7 @@
 
 import org.junit.jupiter.api.Test;
+import org.junit.platform.engine.support.descriptor.FileSystemSource;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 
@@ -147,4 +149,48 @@ class FibonacciHeapTest {
             result[i] = i;
         assertArrayEquals(result, arr);
     }
+
+    @Test
+    void TestFirstMeasurement(){
+        FibonacciHeap fibHeap = new FibonacciHeap();
+        //for (int i = 0; i < 3; i++){
+        int i = 1;
+        int m = (int) Math.pow(2,10+i);
+        FibonacciHeap.HeapNode [] heapNodes = new FibonacciHeap.HeapNode[m+1];
+        long startTime = System.nanoTime();
+        for ( int j =m; j >=0; j-- ){
+            heapNodes[j] = fibHeap.insert(j);
+        }
+
+        fibHeap.deleteMin();
+        for (int j = 0; j < (10+i) ; j++){
+            int key_index = (int) (2 + m * ((-1) * (Math.pow(0.5, j)-1 )));
+            fibHeap.decreaseKey(heapNodes[key_index], m+1);
+        }
+        fibHeap.decreaseKey(heapNodes[m-1], m+1);
+        long endTime = System.nanoTime();
+        System.out.println("Run time: " + ((endTime-startTime)/1000000.0) + "\n TotalLinks " + FibonacciHeap.totalLinks()+
+                "\nTotalCuts: " + FibonacciHeap.totalCuts() + "\n Potential: " + fibHeap.potential()
+        );
+    }
+
+    @Test
+    void TestSecondMeasurement(){
+        FibonacciHeap fibHeap = new FibonacciHeap();
+        int i = 1;
+        int m = 1000 * i;
+        FibonacciHeap.HeapNode [] heapNodes = new FibonacciHeap.HeapNode[m+1];
+        long startTime = System.nanoTime();
+        for ( int j =m; j > 0; j-- ){
+            heapNodes[j] = fibHeap.insert(j);
+        }
+        for (int j = 0; j < m/2; j++){
+            fibHeap.deleteMin();
+        }
+        long endTime = System.nanoTime();
+        System.out.println("Run time: " + ((endTime-startTime) / 1000000.0) + "\n TotalLinks " + FibonacciHeap.totalLinks()+
+                "\nTotalCuts: " + FibonacciHeap.totalCuts() + "\n Potential: " + fibHeap.potential()
+        );
+    }
+
 }
