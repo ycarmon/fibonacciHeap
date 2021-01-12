@@ -131,4 +131,28 @@ class FibonacciHeapTest {
             result[i] = i;
         assertArrayEquals(result, arr);
     }
+
+    @Test
+    void TestFirstMeasurement(){
+        FibonacciHeap fibHeap = new FibonacciHeap();
+        for (int i = 0; i < 3; i++){
+            System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
+            int m = (int) Math.pow(2,10+i);
+            FibonacciHeap.HeapNode [] heapNodes = new FibonacciHeap.HeapNode[m+1];
+            long startTime = System.nanoTime();
+            for ( int j =m; j >=0; j-- ){
+               heapNodes[j] = fibHeap.insert(j);
+            }
+
+            fibHeap.deleteMin();
+            for (int j = 0; j < (10+i) ; j++){
+                int key_index = (int) (2 + m * ((-1) * (Math.pow(0.5, j)-1 )));
+                System.out.println(key_index);
+                fibHeap.decreaseKey(heapNodes[key_index], m-1);
+            }
+            fibHeap.decreaseKey(heapNodes[m-1], m-1);
+            long endTime = System.nanoTime();
+        }
+    }
+
 }
