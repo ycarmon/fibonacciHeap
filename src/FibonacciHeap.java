@@ -291,9 +291,14 @@ public class FibonacciHeap
 
    /**
     * public void delete(HeapNode x)
+    * Deletes the node x from the heap by decreasing it's key so it
+    * is the new minimal node and then preforming deleteMin
     *
-    * Deletes the node x from the heap.
-    *
+    * Complexity: O(log n)
+    * delete's complexity derives from the complexity of the two functions it calls
+    * decreaseKey and deleteMin, as we saw in class, both functions run at O(log n) and
+    * since they are called one after another the total complexity is
+    * O(log n) + O(log n) = O(log n)
     */
     public void delete(HeapNode x)
     {
