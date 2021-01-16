@@ -2,6 +2,7 @@ import javax.xml.soap.Node;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Vector;
+
 /**
  * FibonacciHeap
  *
@@ -9,16 +10,16 @@ import java.util.Vector;
  */
 public class FibonacciHeap
 {
-    // A counter of the number the heap performs a heap action
-    // Used to return totatlLinks()
     private static int totalLinks = 0;
     private static int totalCuts  = 0;
-    // This is used to remove min node from the vector without the need to find it.
+
     private HeapNode minNode;
+    // TODO: did they ask for size maintenance?
     private int size;
     private int nodes_marked;
 
-    // the highest rank of any tree in the heap, used for
+    // TODO: change implementation to not use that...
+    // the highest rank of a tree in the heap, used for
     // array allocation in countersRep
     private int topRank;
     private NodeLL roots;
@@ -36,24 +37,34 @@ public class FibonacciHeap
     * The method returns true if and only if the heap
     * is empty.
     *
-    * Complexity: As seen in class this runs in O(1) and only requires field access
+    * Runtime Complexity: Runs in O(1) and only requires field access.
     */
     public boolean isEmpty()
     {
-    	return (this.findMin() == null && 0 == this.size);
+    	return (this.size == 0);
     }
+
 
    /**
     * public HeapNode insert(int key)
     *
-    * Creates a node (of type HeapNode) which contains the given key, and inserts it into the heap.
-    * The new new node is inserted as a binomial tree of rank 0, to the root's list.
-    * Complexity: since we used the lazy insertion method, as seen in class insert runs at O(1)
-    * Returns the new node created.
+    * Creates a HeapNode with the input key, and the new node is inserted as a
+    * binomial tree of rank 0, to the roots' doubly-linked-list.
+    *
+    * Complexity: Using the lazy insertion routine from class, insert runs at 
+    * O(1).
+    *
+    * The type of this.roots is NodeLL: we implemented a doubly-linked-list of
+    * HeapNodes, and insertion to it runs in O(1).
+    * 
+    * Returns a pointer to the new node.
     */
+    // TODO: find out if we need meld implementation
     public HeapNode insert(int key)
     {
         HeapNode node = this.roots.insert(key);
+
+        // update minNode
         if (isEmpty() || node.key < this.findMin().getKey()){
             this.minNode = node;
         }
@@ -62,38 +73,126 @@ public class FibonacciHeap
     	return node;
     }
 
+
    /**
     * public void deleteMin()
     *
     * Delete the node containing the minimum key.
     *
-    * Complexity: O(log n) The runtime complexity is determined by the complexity of
-    * the consolidation process which takes place in a helper function.
-    * The consolidation runs at an amortized time of O(log n) hence this runs at O(log n)
+    * Complexity: Amortized - O(log n) ; WC - O(n)
+    * The runtime complexity is determined two phases:
+    * 1) Changing the parent pointers of the deleted-node's children. So the
+    *    amortized runtime of this part is O(log n).
+    * 2) Consolidation - a helper function. The implementation is the same as
+    *    the one wev'e seen in class: amortized runtime - O(log n) and WC 
+    *    runtime is O(n).
     */
     public void deleteMin()
     {
         HeapNode node = this.findMin();
-        if (null != node){
+
+        if (node != null) {
+
+            // add children as roots
             NodeLL children = node.getChildren();
-            if (children.getSize() != 0) {
-                for (HeapNode child : node.getChildren()) {
-                    child.parent = null;
-                }
-                roots.join(children);
+            for (HeapNode child : children) {
+                child.parent = null;
             }
-            // remove min from roots
+
+            // removing the node, and melding the children
+            roots.join(children);
             this.roots.remove(node);
 
-            if (0 == this.roots.getSize()){
-                this.minNode = null;
-            }else {
-                this.minNode = roots.head;  // TODO: this doesn't seem right
-                consolidate();
-            }
+            // consolidating
+            this.minNode = null;
+            consolidate();
+
             this.size--;
         }
     }
+
+
+   /**
+    * Reduce the number of trees to amaximum of one tree per rank, then
+    * finding the minimal key.
+    *
+    * The consolidation process uses an helper array as the 'buckets' - that
+    * hold trees with different ranks.
+    *
+    * The implementation is 
+    */
+    private void consolidate(){
+        int maxRank = getRankBound(this.size()) // 1.4404 * log2(size)
+        HeapNode[] rankArray = new HeapNode[maxRank];
+
+        HeapNode node = roots.head;
+
+        for (int i = 0; i < roots.getSize(); i++) {
+            HeapNode curr = node;
+            node = node.next;
+
+            if (curr != null)
+            {
+
+                int currRank = curr.rank;
+                while (rankArray[currRank] != null) {
+                    HeapNode inBucket = rankArray[currRank];
+
+                    if (curr.key > inBucket.key)
+                        curr = link(inBucket, curr);
+                    else
+                        curr = link(curr, inBucket);
+
+                    // After a link - the previous bucket is empty
+                    rankArray[currRank] = null;
+
+                    currRank++;
+                    if (currRank > this.topRank)
+                        this.topRank = currRank;
+                }
+
+                rankArray[currRank] = curr;
+            }
+        }
+
+        populateRootsFindMin(rankArray);
+
+    }
+
+   /**
+    * Calculate the upper bound of ranks in the heap: 1.4404*log2(n) 
+    * @param size
+    * @return The upper bound to the heaps ranks
+    */
+    private int getRankBound(int size){
+        if (size == 0) return 0;
+
+        double constant = 1.4404;
+        double bound =  constant * Math.log((double) size) / Math.log(2);
+        return (int) Math.ceil(bound);
+    }
+
+    /**
+     * After the consolidation process is finished, we add the new roots in the rank Array
+     * to the roots linked list and we find the minimal node of the heap
+     * (the smallest key among the roots)
+     * Complexity O(n) where n is the number of roots in the tree
+     */
+    private void populateRootsFindMin(HeapNode [] rankArray) {
+        this.minNode = null;
+        this.roots = new NodeLL();
+
+        // Repopulate the roots linkedList
+        for (HeapNode root : rankArray) {
+            if (null != root) {
+                roots.insert(root);
+                if (this.findMin() == null || root.key < this.findMin().getKey()) {
+                    this.minNode = root;
+                }
+            }
+        }
+    }
+
 
    /**
     * public HeapNode findMin()
@@ -122,59 +221,18 @@ public class FibonacciHeap
         // Add all roots of heap2 to this roots vector
         this.roots.join(heap2.roots);
 
-        //if current heap is empty
+        // update minNode
         if (this.isEmpty() || heap2.findMin().getKey() < this.findMin().getKey()){
             this.minNode = heap2.findMin();
         }
 
-        // adjust topRank
+        // udpate topRank
         if (this.topRank < heap2.getTopRank())
             this.topRank = heap2.topRank;
 
         this.size += heap2.size();
     }
 
-    /**
-     * Reduce the number of trees in the heap to one per rank, and find the
-     * minimal key in the heap.
-     * Tje consolidation process uses an helper array to sort the trees in
-     * the heap by the ranks.
-     * The size of the roots array might be the entire size of three O(log n)
-     *
-     * The size of the rank array is calculated
-     */
-    private void consolidate(){
-        HeapNode[] rankArray = new HeapNode[getRankBound(this.size())];
-        int rootsArrLen = roots.getSize();
-        HeapNode node = roots.head;
-
-        for (int i = 0; i < rootsArrLen; i++) {
-            HeapNode curr = node;
-            node = node.next;
-
-            if (curr != null)
-            {
-                int currNodeRank = curr.rank;
-                while (rankArray[currNodeRank] != null) {
-                    HeapNode inBucket = rankArray[currNodeRank];
-
-                    if (curr.key > inBucket.key)
-                        curr = link(inBucket, curr);
-                    else curr = link(curr, inBucket);
-                    // After a link - the previous bucket is empty
-                    rankArray[currNodeRank] = null;
-
-                    currNodeRank++;
-                    if (currNodeRank > this.topRank)
-                        this.topRank = currNodeRank;
-                }
-
-                rankArray[currNodeRank] = curr;
-            }
-        }
-        populateRoots(rankArray);
-
-    }
 
     /**
      * This is a spearate method for code clarity reasons
@@ -191,26 +249,6 @@ public class FibonacciHeap
         return link(curr, bucketTreeRoot);
     }
 
-    /**
-     * After the consolidation process is finished, we add the new roots in the rank Array
-     * to the roots linked list and we find the minimal node of the heap
-     * (the smallest key among the roots)
-     * Complexity O(n) where n is the number of roots in the tree
-     */
-    private void populateRoots(HeapNode [] rankArray) {
-        this.minNode = null;
-        this.roots = new NodeLL();
-
-        // Repopulate the roots linkedList
-        for (HeapNode root : rankArray) {
-            if (null != root) {
-                roots.insert(root);
-                if (this.findMin() == null || root.key < this.findMin().getKey()) {
-                    this.minNode = root;
-                }
-            }
-        }
-    }
 
     /**
      * Links two trees of the same rank into a new tree with rank that is greater by 1
@@ -233,23 +271,6 @@ public class FibonacciHeap
         FibonacciHeap.totalLinks++;
 
         return newRoot;
-    }
-
-    /**
-     * Calculate the upper bound of ranks in the heap as ssen in class.
-     * were the bound is 1.4404 log_2 n
-      * @param size
-     * @return The upper bound to the heaps ranks
-     */
-    private int getRankBound(int size){
-        if (this.size() != 0) {
-            double constant = 1.4404;
-            double bound =  constant * Math.log((double) size) / Math.log(2);
-            int retval = (int) Math.ceil(bound);
-            return retval;
-        }
-
-        return 0;
     }
 
 
