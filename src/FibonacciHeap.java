@@ -100,9 +100,9 @@ public class FibonacciHeap
             roots.join(children);
             this.roots.remove(node);
 
-            // consolidating
             this.minNode = this.roots.head; // arbitrary value
-            consolidate();
+            if (!(0 == this.roots.getSize()))
+                consolidate();
 
             this.size--;
         }
@@ -122,9 +122,10 @@ public class FibonacciHeap
         int maxRank = getRankBound(this.size()); // 1.4404 * log2(size)
         HeapNode[] rankArray = new HeapNode[maxRank];
 
-        HeapNode node = roots.head;
+        int numOfRoots = this.roots.getSize();
+        HeapNode node = this.roots.head;
 
-        for (int i = 0; i < roots.getSize(); i++) {
+        for (int i = 0; i < numOfRoots; i++) {
             HeapNode curr = node;
             node = node.next;
 
@@ -155,6 +156,7 @@ public class FibonacciHeap
         populateRootsFindMin(rankArray);
 
     }
+
 
    /**
     * Calculate the upper bound of ranks in the heap: 1.4404*log2(n) 
