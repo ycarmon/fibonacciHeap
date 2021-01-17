@@ -101,7 +101,7 @@ public class FibonacciHeap
             this.roots.remove(node);
 
             // consolidating
-            this.minNode = null;
+            this.minNode = this.roots.head; // arbitrary value
             consolidate();
 
             this.size--;
@@ -119,7 +119,7 @@ public class FibonacciHeap
     * The implementation is 
     */
     private void consolidate(){
-        int maxRank = getRankBound(this.size()) // 1.4404 * log2(size)
+        int maxRank = getRankBound(this.size()); // 1.4404 * log2(size)
         HeapNode[] rankArray = new HeapNode[maxRank];
 
         HeapNode node = roots.head;
@@ -303,7 +303,7 @@ public class FibonacciHeap
         }
 
         // int[] rootsRankArr = new int[this.getTopRank() + 1];
-        int rankBound = getRankBound(this.getSize()) + 1;
+        int rankBound = getRankBound(this.size) + 1;
         int[] rootsRankArr = new int[rankBound];
         for (HeapNode root : this.roots){
             if (root != null)
@@ -313,15 +313,15 @@ public class FibonacciHeap
         // get rid of zeroes
         int maxRank = rankBound;
         while (maxRank > 0) {
-            if (rootRankArr[maxRank-1] > 0) break;
+            if (rootsRankArr[maxRank-1] > 0) break;
             maxRank--;
         }
-        int[] rootsRankShortArr = new int[maxRank]
+        int[] rootsRankShortArr = new int[maxRank];
         for (int i = maxRank; i > 0; i--) {
-            rootsRankShortArr[i-1] = rootsRankArr[i-1]
+            rootsRankShortArr[i-1] = rootsRankArr[i-1];
         }
 
-        return rootsRankShortArr[];
+        return rootsRankShortArr;
     }
 
 
