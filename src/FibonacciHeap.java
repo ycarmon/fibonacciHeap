@@ -15,10 +15,6 @@ public class FibonacciHeap
     private static int totalLinks = 0;
     private static int totalCuts  = 0;
 
-    // TODO: change implementation to not use that.
-    // the highest rank of a tree in the heap, used for
-    // array allocation in countersRep
-    private int topRank;
     private NodeLL roots;
 
     public FibonacciHeap()
@@ -145,8 +141,6 @@ public class FibonacciHeap
                     rankArray[currRank] = null;
 
                     currRank++;
-                    if (currRank > this.topRank)
-                        this.topRank = currRank;
                 }
 
                 rankArray[currRank] = curr;
@@ -227,9 +221,6 @@ public class FibonacciHeap
             this.minNode = heap2.findMin();
         }
 
-        // udpate topRank
-        if (this.topRank < heap2.getTopRank())
-            this.topRank = heap2.topRank;
 
         this.size += heap2.size();
     }
@@ -299,10 +290,13 @@ public class FibonacciHeap
     {
         // Heap is a list, we just have trees of rank 0,
         // but all trees are in this index
-        if (this.getTopRank() == 0) {
-            int [] rootRankArr = {roots.getSize()};
-            return rootRankArr;
-        }
+        int[] emptyHeapRep = {0};
+        if (this.size == 0)
+            return emptyHeapRep;
+        // if (this.getTopRank() == 0) {
+        //     int [] rootRankArr = {roots.getSize()};
+        //     return rootRankArr;
+        // }
 
         // int[] rootsRankArr = new int[this.getTopRank() + 1];
         int rankBound = getRankBound(this.size) + 1;
@@ -514,10 +508,10 @@ public class FibonacciHeap
         return this.nodes_marked;
     }
 
-    public int getTopRank()
-    {
-        return this.topRank;
-    }
+//    public int getTopRank()
+//    {
+//        return this.topRank;
+//    }
 
     public NodeLL getRootsLinkedList()
     {
