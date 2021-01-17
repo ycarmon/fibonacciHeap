@@ -1,7 +1,4 @@
-import javax.xml.soap.Node;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Vector;
 
 /**
  * FibonacciHeap
@@ -10,15 +7,15 @@ import java.util.Vector;
  */
 public class FibonacciHeap
 {
-    private static int totalLinks = 0;
-    private static int totalCuts  = 0;
-
     private HeapNode minNode;
-    // TODO: did they ask for size maintenance?
+
     private int size;
     private int nodes_marked;
 
-    // TODO: change implementation to not use that...
+    private static int totalLinks = 0;
+    private static int totalCuts  = 0;
+
+    // TODO: change implementation to not use that.
     // the highest rank of a tree in the heap, used for
     // array allocation in countersRep
     private int topRank;
@@ -28,6 +25,7 @@ public class FibonacciHeap
     {
         this.roots = new NodeLL();
     }
+
 
    /**
     * public boolean isEmpty()
@@ -59,7 +57,6 @@ public class FibonacciHeap
     * 
     * Returns a pointer to the new node.
     */
-    // TODO: find out if we need meld implementation
     public HeapNode insert(int key)
     {
         HeapNode node = this.roots.insert(key);
@@ -173,9 +170,10 @@ public class FibonacciHeap
     }
 
     /**
-     * After the consolidation process is finished, we add the new roots in the rank Array
-     * to the roots linked list and we find the minimal node of the heap
-     * (the smallest key among the roots)
+     * After the consolidation process is finished, we add the new roots in the
+     * rank Array to the roots linked list and we find the minimal node of the 
+     * heap (the smallest key among the roots)
+     *
      * Complexity O(n) where n is the number of roots in the tree
      */
     private void populateRootsFindMin(HeapNode [] rankArray) {
@@ -192,6 +190,7 @@ public class FibonacciHeap
             }
         }
     }
+
 
 
    /**
@@ -277,12 +276,14 @@ public class FibonacciHeap
    /**
     * public int size()
     *
-    * Return the number of elements in the heap
+    * Return the number of elements in the heap.
+    *
+    * O(1) - an access to a class field.
     *
     */
     public int size()
     {
-    	return this.size; // should be replaced by student code
+    	return this.size; 
     }
 
     /**
@@ -301,21 +302,35 @@ public class FibonacciHeap
             return rootRankArr;
         }
 
-        int[] rootsRankArr = new int[this.getTopRank() + 1];
+        // int[] rootsRankArr = new int[this.getTopRank() + 1];
+        int rankBound = getRankBound(this.getSize()) + 1;
+        int[] rootsRankArr = new int[rankBound];
         for (HeapNode root : this.roots){
             if (root != null)
                 rootsRankArr[root.rank]++;
         }
 
-        return rootsRankArr;
+        // get rid of zeroes
+        int maxRank = rankBound;
+        while (maxRank > 0) {
+            if (rootRankArr[maxRank-1] > 0) break;
+            maxRank--;
+        }
+        int[] rootsRankShortArr = new int[maxRank]
+        for (int i = maxRank; i > 0; i--) {
+            rootsRankShortArr[i-1] = rootsRankArr[i-1]
+        }
+
+        return rootsRankShortArr[];
     }
+
 
    /**
     * public void delete(HeapNode x)
     * Deletes the node x from the heap by decreasing it's key so it
     * is the new minimal node and then preforming deleteMin
     *
-    * Complexity: O(log n)
+    * Runtime Complexity: O(log n)
     * delete's complexity derives from the complexity of the two functions it calls
     * decreaseKey and deleteMin, as we saw in class, both functions run at O(log n) and
     * since they are called one after another the total complexity is
@@ -333,11 +348,18 @@ public class FibonacciHeap
    /**
     * public void decreaseKey(HeapNode x, int delta)
     *
-    * The function decreases the key of the node x by delta. The structure of the heap should be updated
-    * to reflect this change (for example, the cascading cuts procedure should be applied if needed).
+    * The function decreases the key of the node x by delta. The structure of
+    * the heap should be updated to reflect this change (for example, the
+    * cascading cuts procedure should be applied if needed).
+    *
+    * Runtime Complexity: O(log n) - the implementation is according to the one
+    * we learned in class.
+    * 
+    *
+    *
+    * delete's complexity derives from the complexity of the two functions it calls
+    * decreaseKey and deleteMin, as we saw in class, both functions run at O(log n) and
     */
-    // OFEK: add tests
-    // OFEK: add complexity documentation
     public void decreaseKey(HeapNode x, int delta)
     {
     	int newKey = x.getKey() - delta;
@@ -350,8 +372,6 @@ public class FibonacciHeap
             this.minNode = x;
     }
 
-
-    // cascading cut function
     public void cascadingCut(HeapNode x, HeapNode y)
     {
         // the actual cutting
@@ -382,7 +402,8 @@ public class FibonacciHeap
     *
     * This function returns the current potential of the heap, which is:
     * Potential = #trees + 2*#marked
-    * The potential equals to the number of trees in the heap plus twice the number of marked nodes in the heap.
+    * 
+    * Runtime complexity - O(1).
     */
     public int potential()
     {
@@ -392,10 +413,10 @@ public class FibonacciHeap
    /**
     * public static int totalLinks()
     *
-    * This static function returns the total number of link operations made during the run-time of the program.
-    * A link operation is the operation which gets as input two trees of the same rank, and generates a tree of
-    * rank bigger by one, by hanging the tree which has larger value in its root on the tree which has smaller value
-    * in its root.
+    * This static function returns the total number of link operations made
+    * during the run-time of the program.
+    * 
+    * Runtime complexity - O(1).
     */
     public static int totalLinks()
     {
@@ -405,67 +426,85 @@ public class FibonacciHeap
    /**
     * public static int totalCuts()
     *
-    * This static function returns the total number of cut operations made during the run-time of the program.
-    * A cut operation is the operation which diconnects a subtree from its parent (during decreaseKey/delete methods).
+    * This static function returns the total number of cut operations that
+    * were made during the run-time of the program.
+    * 
+    * Runtime complexity - O(1).
     */
     public static int totalCuts()
     {
-    	return FibonacciHeap.totalCuts; // should be replaced by student code
+    	return FibonacciHeap.totalCuts; 
     }
 
     /**
      * public static int[] kMin(FibonacciHeap H, int k)
-     * This static function returns the k minimal elements in a binomial tree H.
-     * The function should run in O(k*deg(H)).
-     * You are not allowed to change H.*
-     * The function starts by adding H's roots to a new Fibonacci heap. O(1) * number_of_roots
-     *Then iteratively k -times,
-     *     get the minimal element's key, O(1)
-     *     add it to the return array.
-     *     perform delete-min on the helper heap.
-     *     add all of the deleted node's children to the helper heap.
-     * Complexity: O(k * deg(H)):
-     *      Firstly the function adds all of H's roots to the helper heap
-     *      O(1) * number_of_roots. However since H is a binomial tree it
-     *      has only a single root thus number_of_roots is 1.
-     *      Thus the loop runs at O(1).
+     * This static method returns the k minimal elements in a BINOMIAL TREE H.
+     * 
+     * For a tree with n nodes the function's runtime complexity is 
+     * O(k*log(n)).
      *
-     *      The second loop runs k times and in each iteration performs the
-     *      following sequence of actions:
-     *          a findMin call - O(1)
-     *          a deleteMin call - O(log n) - where is the number of nodes in the helper heap,
-     *              in the worst case, every node from H is in the helper heap thus this runs
-     *              at O(log 2^{deg H}) = O(deg H).
-     *          a secondary loop that adds the minimal node's roots to the helper heap
-     *              O(1) * number_of_roots. Since there are at most deg(h) roots to this runs in
-     *              O(deg H)
-     *       The total complexity of this loop is  k * ( O(1) + O(deg H) + O(deg H)) = O(k deg H)
+     * The function must not modify H.
+     * If we could modify H we would use deleteMin k times - thus achieving the
+     * desired runtime complexity:
+     *      - For each deleteMin operation the minimal node has O(log(n))
+     *        children. And the number of trees in the heap would be
+     *        bounded by O(log(n)).
+     *      - Thus - before each consolidate operation the number of trees is
+     *        less than 2log(n) trees, and after the consolidate operation the
+     *        number of trees is less than log(n). So the number of links, and
+     *        the deleteMin runtime complexity would be O(log(n)).
      *
-     *       So the total runtime complexity of this function is  O(1)+O(k deg H) = O(k deg H)
+     * In order to not change H - we use a helper heap, in which we would delete
+     * nodes, and every node would maintain a pointer to its corresponding node
+     * in the original heap.
+     *
+     * Following is a description of the algorithm:
+     * 1. Create a Helper FibonacciHeap with a single nodes that points to the 
+     *    root of H. Runs in O(1).
+     * 2. Iteratively: (k iterations)
+     *  2.1. DeleteMin on the helper heap - O(log(n)).
+     *  2.2. For that deleted node,iIterate over the children of corresponding
+     *       in the Original heap, and add them as roots to the helper heap.
+     *       This part also runs in O(log(n)).
+     * 
+     * Thus, the runtime complexity of the algorithm is:
+     *      O(k*(log(n)+log(n))) = O(k*log(n))
+     *
      */
     public static int[] kMin(FibonacciHeap H, int k)
     {
         int[] arr = new int[k];
+        // creating a helper FibonacciHeap
         FibonacciHeap fibHeap = new FibonacciHeap();
-        HeapNode minNode = H.findMin();
+
+
+        // this loop has a single iteration - because H 
+        // is a binomial-tree and has a single root.
         for (HeapNode root : H.roots) {
             HeapNode currNode = fibHeap.insert(root.getKey());
-            currNode.nodePointer = root; // Point to the matching node in H
+            currNode.nodePointer = root;
         }
 
+        // using the node pointers - extracting the k smallest
+        // nodes using deleteMin on the helper FibonacciHeap
         for (int i = 0; i < k; i++) {
             arr[i] = fibHeap.findMin().getKey();
+            // get the minimal node children using the nodepointer
             NodeLL min_children = fibHeap.findMin().nodePointer.children;
+            // delete the minimal node from the helper heap
             fibHeap.deleteMin();
+
             for (HeapNode child : min_children)
             {
+                // make the children point to their corresponding nodes in
+                // the original heap
                 HeapNode currNode = fibHeap.insert(child.getKey());
-                currNode.nodePointer = child; // Point to the matching node in H
+                currNode.nodePointer = child;
             }
 
         }
 
-        return arr; // should be replaced by student code
+        return arr; 
     }
 
     // A getter to the heap's number of marked nodes
@@ -540,7 +579,6 @@ public class FibonacciHeap
 
     /**
      * A class used to represent the nodes in a vertex as a linked list,
-     * This is neede instead of Java's implementation as we need to manage references ourselves.
      */
     public class NodeLL implements Iterable<HeapNode> {
         //first node in list
@@ -562,7 +600,9 @@ public class FibonacciHeap
         }
 
         /**
-         * Insert an existing node at the beginning of the list, this will be the lists new head
+         * Insert an existing node at the beginning of the list, this will be 
+         * the lists new head.
+         *
          * Complexity O(1) - only requires local changes of pointers
          * @param node The new heap node added to the list
          */
